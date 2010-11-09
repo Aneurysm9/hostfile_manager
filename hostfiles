@@ -27,6 +27,9 @@ pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 @enabled = split(/,/, join(',', @enabled));
 @disabled = split(/,/, join(',', @disabled));
 
+pod2usage(1) unless (@enabled || @disabled);
+die("You must have permission to read and write $hostfile_path\n") unless (-r $hostfile_path && -w $hostfile_path);
+
 my $hostfile = read_file($hostfile_path);
 
 foreach my $disable (@disabled)
