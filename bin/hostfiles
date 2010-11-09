@@ -44,7 +44,11 @@ foreach my $disable (@disabled)
 foreach my $enable (@enabled)
 {
 	my $filename = $path_prefix . $enable;
-	next unless (-e $filename);
+	unless (-e $filename)
+	{
+		print "Hostfile fragment $enable does not exist\n";
+		next;
+	}
 
 	print "Enabling $enable\n";
 	$hostfile =~ s/@{[block($enable)]}//g;
