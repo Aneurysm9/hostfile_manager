@@ -4,17 +4,25 @@ use strict;
 use warnings;
 use Getopt::Long;
 use File::Slurp;
+use Pod::Usage;
 
 my $path_prefix = '/etc/hostfiles/';
 my $hostfile_path = '/etc/hosts';
 
 my @enabled = ();
 my @disabled = ();
+my $help = 0;
+my $man = 0;
 
 GetOptions(
 	"enable=s" => \@enabled,
 	"disable=s" => \@disabled,
-);
+	"help|?" => \$help,
+	man => \$man,
+) or pod2usage(2);
+
+pod2usage(1) if $help;
+pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 
 @enabled = split(/,/, join(',', @enabled));
 @disabled = split(/,/, join(',', @disabled));
@@ -40,3 +48,37 @@ foreach my $enable (@enabled)
 }
 
 write_file($hostfile_path, $hostfile);
+
+__END__
+
+=head1 NAME
+
+hostfiles - A simple script to manage multiple sets of hostfiles on *NIX systems
+
+=head1 SYNOPSIS
+
+hostfiles [options]
+
+  Options:
+    --enable	Enable one or more hostfile fragments
+    --disable	Disable one or more hostfile fragments
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--enable>
+
+Enable one or more hostfile fragments.  This option may be specified multiple times and multiple fragments may be specified in a comma-separated list.
+
+=item B<--disable>
+
+Disable one or more hostfile fragments.  This option may be specified multiple times and multiple fragments may be specified in a comma-separated list.
+
+=back
+
+=head1 DESCRIPTION
+
+B<This program> will read the hostfile fragments specified to be enabled from /etc/hostfiles/<fragment_name> and add them to /etc/hosts.  It will remove any fragments from /etc/hosts that are specified to be disabled.
+
+=cut
