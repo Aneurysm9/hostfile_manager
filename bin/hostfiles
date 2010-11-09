@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use File::Find;
 use File::Slurp;
 use Pod::Usage;
 
@@ -11,12 +12,14 @@ my $hostfile_path = '/etc/hosts';
 
 my @enabled = ();
 my @disabled = ();
+my $status = 0;
 my $help = 0;
 my $man = 0;
 
 GetOptions(
 	"enable=s" => \@enabled,
 	"disable=s" => \@disabled,
+	"status" => \$status,
 	"help|?" => \$help,
 	man => \$man,
 ) or pod2usage(2);
@@ -27,7 +30,7 @@ pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 @enabled = split(/,/, join(',', @enabled));
 @disabled = split(/,/, join(',', @disabled));
 
-pod2usage(1) unless (@enabled || @disabled);
+pod2usage(1) unless (@enabled || @disabled || $status);
 die("You must have permission to read and write $hostfile_path\n") unless (-r $hostfile_path && -w $hostfile_path);
 
 my $hostfile = read_file($hostfile_path);
@@ -35,7 +38,7 @@ my $hostfile = read_file($hostfile_path);
 foreach my $disable (@disabled)
 {
 	print "Disabling $disable\n";
-	$hostfile =~ s/(?:#+[\r\n])?#+\s*BEGIN: $disable[\r\n](?:#+[\r\n])?.*(?:#+[\r\n])?#+\s*END: $disable[\r\n](?:#+[\r\n])?//mgs;
+	$hostfile =~ s/@{[block($disable)]}//g;
 }
 
 foreach my $enable (@enabled)
@@ -44,13 +47,35 @@ foreach my $enable (@enabled)
 	next unless (-e $filename);
 
 	print "Enabling $enable\n";
-	$hostfile =~ s/(?:#+[\r\n])?#+\s*BEGIN: $enable[\r\n](?:#+[\r\n])?.*(?:#+[\r\n])?#+\s*END: $enable[\r\n](?:#+[\r\n])?//mgs;
+	$hostfile =~ s/@{[block($enable)]}//g;
 
 	my $addition = read_file($filename);
 	$hostfile .= "# BEGIN: $enable\n$addition\n# END: $enable\n";
 }
 
 write_file($hostfile_path, $hostfile);
+
+find(\&show_status, $path_prefix) if $status;
+sub show_status
+{
+	my $fragment = $File::Find::name;
+	return if -d $fragment;
+	$fragment =~ s{^$path_prefix}{};
+	my $found = $hostfile =~ /@{[block($fragment)]}/;
+	print $found ? "+ " : "  ";
+# TODO: add a diff here between the real file and what is in $1
+	print "$fragment\n";
+}
+
+BEGIN {
+	my %re;
+	sub block
+	{
+		my $name = shift;
+		$re{$name} ||= qr/(?:#+[\r\n])?#+\s*BEGIN: $name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $name[\r\n](?:#+[\r\n])?/ms;
+		return $re{$name};
+	}
+}
 
 __END__
 
@@ -65,6 +90,7 @@ hostfiles [options]
   Options:
     --enable	Enable one or more hostfile fragments
     --disable	Disable one or more hostfile fragments
+    --status	Display the status of various hostfile fragments
 
 =head1 OPTIONS
 
@@ -77,6 +103,10 @@ Enable one or more hostfile fragments.  This option may be specified multiple ti
 =item B<--disable>
 
 Disable one or more hostfile fragments.  This option may be specified multiple times and multiple fragments may be specified in a comma-separated list.
+
+=item B<--status>
+
+Display a list of fragments and their status.
 
 =back
 
