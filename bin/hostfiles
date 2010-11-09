@@ -54,7 +54,7 @@ foreach my $enable (@enabled)
 	$hostfile =~ s/@{[block($enable)]}//g;
 
 	my $addition = read_file($filename);
-	$hostfile .= "# BEGIN: $enable\n$addition\n# END: $enable\n";
+	$hostfile .= "# BEGIN: $enable\n$addition# END: $enable\n\n";
 }
 
 write_file($hostfile_path, $hostfile);
@@ -64,10 +64,13 @@ sub show_status
 {
 	my $fragment = $File::Find::name;
 	return if -d $fragment;
+
+	my $fragment_contents = read_file($fragment);
 	$fragment =~ s{^$path_prefix}{};
+
 	my $found = $hostfile =~ /@{[block($fragment)]}/;
-	print $found ? "+ " : "  ";
-# TODO: add a diff here between the real file and what is in $1
+	print $found ? "+" : " ";
+	print !$found || ($1 eq $fragment_contents) ? "  " : "* ";
 	print "$fragment\n";
 }
 
@@ -110,7 +113,7 @@ Disable one or more hostfile fragments.  This option may be specified multiple t
 
 =item B<--status>
 
-Display a list of fragments and their status.
+Display a list of fragments and their status.  A '+' indicates the fragment is enabled.  A '*' indicates an enabled fragment has been changed in /etc/hosts.
 
 =back
 
