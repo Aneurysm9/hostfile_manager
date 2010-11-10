@@ -3,3 +3,4 @@ MANIFEST
 MANIFEST.SKIP
 README
 bin/hostfiles
+lib/Hostfile/Manager.pm

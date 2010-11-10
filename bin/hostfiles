@@ -3,12 +3,8 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use File::Find;
-use File::Slurp;
 use Pod::Usage;
-
-my $path_prefix = '/etc/hostfiles/';
-my $hostfile_path = '/etc/hosts';
+use Hostfile::Manager;
 
 my @enabled = ();
 my @disabled = ();
@@ -31,58 +27,16 @@ pod2usage(-exitstatus => 0, -verbose => 2) if $man;
 @disabled = split(/,/, join(',', @disabled));
 
 pod2usage(1) unless (@enabled || @disabled || $status);
-die("You must have permission to read and write $hostfile_path\n") unless (-r $hostfile_path && -w $hostfile_path);
 
-my $hostfile = read_file($hostfile_path);
+read_hostfile();
 
-foreach my $disable (@disabled)
-{
-	print "Disabling $disable\n";
-	$hostfile =~ s/@{[block($disable)]}//g;
-}
+disable_fragments(@disabled) if @disabled;
+enable_fragments(@enabled) if @enabled;
 
-foreach my $enable (@enabled)
-{
-	my $filename = $path_prefix . $enable;
-	unless (-e $filename)
-	{
-		print "Hostfile fragment $enable does not exist\n";
-		next;
-	}
+write_hostfile() if (@disabled || @enabled);
 
-	print "Enabling $enable\n";
-	$hostfile =~ s/@{[block($enable)]}//g;
+show_status() if $status;
 
-	my $addition = read_file($filename);
-	$hostfile .= "# BEGIN: $enable\n$addition# END: $enable\n\n";
-}
-
-write_file($hostfile_path, $hostfile);
-
-find(\&show_status, $path_prefix) if $status;
-sub show_status
-{
-	my $fragment = $File::Find::name;
-	return if -d $fragment;
-
-	my $fragment_contents = read_file($fragment);
-	$fragment =~ s{^$path_prefix}{};
-
-	my $found = $hostfile =~ /@{[block($fragment)]}/;
-	print $found ? "+" : " ";
-	print !$found || ($1 eq $fragment_contents) ? "  " : "* ";
-	print "$fragment\n";
-}
-
-BEGIN {
-	my %re;
-	sub block
-	{
-		my $name = shift;
-		$re{$name} ||= qr/(?:#+[\r\n])?#+\s*BEGIN: $name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $name[\r\n](?:#+[\r\n])?/ms;
-		return $re{$name};
-	}
-}
 
 __END__
 

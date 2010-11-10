@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
 	NAME => 'Hostfile::Manager',
-	VERSION => '0.1',
+	VERSION_FROM => 'lib/Hostfile/Manager.pm',
 	EXE_FILES => ['bin/hostfiles'],
 	PREREQ_PM => {
 		'Getopt::Long' => 0,
@@ -10,4 +10,5 @@ WriteMakefile(
 		'File::Slurp' => 0,
 		'Pod::Usage' => 0,
 	},
+	AUTHOR => 'Anthony J. Mirabella',
 );
