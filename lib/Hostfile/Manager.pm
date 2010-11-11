@@ -76,7 +76,7 @@ sub status_helper
 	$fragment =~ s{^$path_prefix}{};
 
 	my $found = $hostfile =~ /@{[block($fragment)]}/;
-	my $flag = $found ? ($1 eq "$fragment_contents\n" ? "+" : "*") : " ";
+	my $flag = $found ? ($1 eq $fragment_contents ? "+" : "*") : " ";
 	print "$flag $fragment\n";
 }
 
