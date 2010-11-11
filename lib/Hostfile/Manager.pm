@@ -28,7 +28,7 @@ sub block
 
 sub enable_fragments
 {
-	my @enabled = shift || ();
+	my @enabled = @_;
 	foreach my $enable (@enabled)
 	{
 		my $filename = $path_prefix . $enable;
@@ -48,7 +48,7 @@ sub enable_fragments
 
 sub disable_fragments
 {
-	my @disabled = shift || ();
+	my @disabled = @_;
 	foreach my $disable (@disabled)
 	{
 		print "Disabling $disable\n";
@@ -76,9 +76,8 @@ sub status_helper
 	$fragment =~ s{^$path_prefix}{};
 
 	my $found = $hostfile =~ /@{[block($fragment)]}/;
-	print $found ? "+" : " ";
-	print !$found || ($1 eq $fragment_contents) ? "  " : "* ";
-	print "$fragment\n";
+	my $flag = $found ? ($1 eq "$fragment_contents\n" ? "+" : "*") : " ";
+	print "$flag $fragment\n";
 }
 
 sub write_hostfile
