@@ -145,4 +145,16 @@ sub get_fragment_requires_fragment_existence: Tests(2) {
 	can_ok $manager, 'get_fragment';
 	throws_ok { $manager->get_fragment($fragment) } qr/^Fragment not found/, '... and get_fragment chokes when fragment file missing';
 }
+
+sub block: Tests(2) {
+	my $test = shift;
+	my $manager = $test->class->new;
+
+	my $fragment_name = 'f1';
+	my $block_regexp = qr/(?:#+[\r\n])?#+\s*BEGIN: $fragment_name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $fragment_name[\r\n](?:#+[\r\n])?/ms;
+
+	can_ok $manager, 'block';
+	is $block_regexp, $manager->block($fragment_name);
+}
+
 1;

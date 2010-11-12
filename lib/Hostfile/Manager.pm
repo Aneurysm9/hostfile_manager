@@ -10,7 +10,8 @@ our $VERSION = '0.3';
 
 has path_prefix => ( is => 'rw', isa => 'Str', default => '/etc/hostfiles/' );
 has hostfile_path => ( is => 'rw', isa => 'Str', default => '/etc/hosts' );
-has hostfile => (is => 'ro', isa => 'Str', writer => '_set_hostfile', lazy => 1, builder => 'load_hostfile', init_arg => undef );
+has hostfile => ( is => 'ro', isa => 'Str', writer => '_set_hostfile', lazy => 1, builder => 'load_hostfile', init_arg => undef );
+has blocks => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
 sub load_hostfile {
 	my ($self, $filename) = @_;
@@ -36,6 +37,13 @@ sub get_fragment {
 	}
 
 	read_file($filename);
+}
+
+sub block {
+	my ($self, $block_name) = @_;
+
+	$self->blocks->{$block_name} ||= qr/(?:#+[\r\n])?#+\s*BEGIN: $block_name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $block_name[\r\n](?:#+[\r\n])?/ms;
+	return $self->blocks->{$block_name};
 }
 
 no Moose;
