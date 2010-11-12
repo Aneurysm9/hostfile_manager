@@ -239,6 +239,18 @@ sub enable_fragment_does_not_leave_multiple_entries: Tests(4) {
 	is $manager->hostfile, $content, '... and fragment only appears once';
 }
 
+sub enable_fragment_does_not_warn_if_fragment_not_loaded: Tests(2) {
+	my $test = shift;
+
+	my $path = 't/fixtures/hosts/2';
+	my $content = read_file($path);
+	my $prefix = 't/fixtures/fragments/';
+	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
+
+	can_ok $manager, 'enable_fragment';
+	warning_like { $manager->enable_fragment('non_existent') } [qr/^Fragment not found/], '... and enable_fragment does not complain excessively when enabling missing fragment';
+}
+
 sub disable_fragment: Tests(4) {
 	my $test = shift;
 

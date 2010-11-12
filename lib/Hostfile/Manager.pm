@@ -63,7 +63,7 @@ sub fragment_enabled {
 sub enable_fragment {
 	my ($self, $fragment_name) = @_;
 
-	my $fragment = $self->get_fragment($fragment_name);
+	my $fragment = $self->get_fragment($fragment_name) or return;
 
 	$self->disable_fragment($fragment_name) if $self->fragment_enabled($fragment_name);
 	$self->_set_hostfile($self->hostfile . "\n# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n");
