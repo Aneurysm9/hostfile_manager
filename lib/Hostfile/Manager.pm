@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Moose;
 use File::Slurp;
-use File::Find;
 use File::Basename qw/dirname/;
 
 our $VERSION = '0.3';
@@ -24,7 +23,8 @@ sub load_hostfile {
 		Carp::croak("Hostfile must exist.  File not found at $filename");
 	}
 
-	$self->_set_hostfile(read_file($filename));
+	my $file = read_file($filename);
+	$self->_set_hostfile($file);
 }
 
 sub write_hostfile {
@@ -66,7 +66,7 @@ sub enable_fragment {
 	my $fragment = $self->get_fragment($fragment_name) or return;
 
 	$self->disable_fragment($fragment_name) if $self->fragment_enabled($fragment_name);
-	$self->_set_hostfile($self->hostfile . "\n# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n");
+	$self->_set_hostfile($self->hostfile . "# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n");
 }
 
 sub disable_fragment {
