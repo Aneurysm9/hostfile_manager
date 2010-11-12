@@ -64,14 +64,15 @@ sub enable_fragment {
 
 	my $fragment = $self->get_fragment($fragment_name);
 
-	$self->_set_hostfile($self->hostfile . "# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n\n");
+	$self->disable_fragment($fragment_name) if $self->fragment_enabled($fragment_name);
+	$self->_set_hostfile($self->hostfile . "\n# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n");
 }
 
 sub disable_fragment {
 	my ($self, $fragment_name) = @_;
 
 	my $hostfile = $self->hostfile;
-	$hostfile =~ s/@{[$self->block($fragment_name)]}//;
+	$hostfile =~ s/@{[$self->block($fragment_name)]}//g;
 
 	$self->_set_hostfile($hostfile);
 }

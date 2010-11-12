@@ -225,6 +225,20 @@ sub enable_fragment: Tests(4) {
 	ok $manager->fragment_enabled('f1'), '... and fragment is indeed enabled';
 }
 
+sub enable_fragment_does_not_leave_multiple_entries: Tests(4) {
+	my $test = shift;
+
+	my $path = 't/fixtures/hosts/2';
+	my $content = read_file($path);
+	my $prefix = 't/fixtures/fragments/';
+	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
+
+	can_ok $manager, 'enable_fragment';
+	ok $manager->enable_fragment('f1'), '... and enable_fragment returns ok when fragment is newly enabled';
+	ok $manager->fragment_enabled('f1'), '... and fragment is indeed enabled';
+	is $manager->hostfile, $content, '... and fragment only appears once';
+}
+
 sub disable_fragment: Tests(4) {
 	my $test = shift;
 
