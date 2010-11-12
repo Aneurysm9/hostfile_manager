@@ -105,4 +105,29 @@ sub cannot_create_object_with_invalid_path_in_constructor: Tests(1) {
 	throws_ok { $test->class->new(hostfile_path => $file) } qr/^Hostfile must exist/;
 }
 
+sub get_fragment: Tests(2) {
+	my $test = shift;
+
+	my $hostfile = 't/fixtures/hosts/1';
+	my $prefix = 't/fixtures/fragments/';
+	my $fragment = 'f1';
+
+	my $manager = $test->class->new(path_prefix => $prefix, hostfile_path => $hostfile);
+
+	can_ok $manager, 'get_fragment';
+	is read_file($prefix . $fragment), $manager->get_fragment($fragment), '... and get_fragment returns fragment content';
+}
+
+sub get_fragment_requires_fragment_existence: Tests(2) {
+	my $test = shift;
+
+	my $hostfile = 't/fixtures/hosts/1';
+	my $prefix = 't/fixtures/fragments/';
+	my $fragment = 'non_existent';
+
+	my $manager = $test->class->new(path_prefix => $prefix, hostfile_path => $hostfile);
+
+	can_ok $manager, 'get_fragment';
+	throws_ok { $manager->get_fragment($fragment) } qr/^Fragment not found/, '... and get_fragment chokes when fragment file missing';
+}
 1;

@@ -25,4 +25,17 @@ sub load_hostfile {
 	$self->_set_hostfile(read_file($filename));
 }
 
+sub get_fragment {
+	my ($self, $fragment_name) = @_;
+
+	my $filename = $self->path_prefix . $fragment_name;
+
+	unless (-e $filename)
+	{
+		Carp::croak("Fragment not found at $filename");
+	}
+
+	read_file($filename);
+}
+
 1;
