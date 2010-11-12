@@ -10,7 +10,7 @@ our $VERSION = '0.3';
 
 has path_prefix => ( is => 'rw', isa => 'Str', default => '/etc/hostfiles/' );
 has hostfile_path => ( is => 'rw', isa => 'Str', default => '/etc/hosts' );
-has hostfile => (is => 'ro', isa => 'Str', writer => '_set_hostfile', builder => 'load_hostfile' );
+has hostfile => (is => 'ro', isa => 'Str', writer => '_set_hostfile', builder => 'load_hostfile', init_arg => undef );
 
 sub load_hostfile {
 	my ($self, $filename) = @_;

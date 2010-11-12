@@ -62,6 +62,17 @@ sub hostfile: Tests(4) {
 
 }
 
+sub hostfile_cannot_be_set_in_constructor: Tests(1) {
+	my $test = shift;
+
+	my $file = 't/fixtures/hosts/1';
+	my $content = read_file($file);
+
+	my $manager = $test->class->new(hostfile_path => $file, hostfile => 'this should be ignored');
+
+	is $content, $manager->hostfile, 'hostfile should start out with content of file at hostfile_path';
+}
+
 sub load_hostfile: Tests(3) {
 	my $test = shift;
 	my $manager = $test->class->new;
