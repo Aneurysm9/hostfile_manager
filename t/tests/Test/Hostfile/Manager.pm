@@ -49,12 +49,16 @@ sub hostfile_path: Tests(3) {
 
 sub hostfile: Tests(4) {
 	my $test = shift;
-	my $manager = $test->class->new;
+
+	my $file = 't/fixtures/hosts/1';
+	my $content = read_file($file);
+
+	my $manager = $test->class->new(hostfile_path => $file);
 
 	can_ok $manager, 'hostfile';
-	ok !defined $manager->hostfile, '... and hostfile should start out undefined';
+	is $content, $manager->hostfile, '... and hostfile should start out with content of file at hostfile_path';
 	throws_ok { $manager->hostfile('foobar') } qr/^Cannot assign a value/, '... and settings its value should NOT succeed';
-	ok !defined $manager->hostfile, '... and settings its value did not succeed';
+	is $content, $manager->hostfile, '... and settings its value did not succeed';
 
 }
 
@@ -81,6 +85,16 @@ sub load_hostfile_uses_hostfile_path: Tests(3) {
 	can_ok $manager, 'load_hostfile';
 	ok $manager->load_hostfile, '... and load_hostfile indicates success';
 	is $content, $manager->hostfile, '... and load_hostfile actually loaded the file';
+}
+
+sub load_hostfile_requires_hostfile_existence: Tests(2) {
+	my $test = shift;
+	my $manager = $test->class->new;
+
+	my $file = 't/fixtures/hosts/non_existent';
+
+	can_ok $manager, 'load_hostfile';
+	throws_ok { $manager->load_hostfile($file) } qr/^Hostfile must exist/, '... and load_hostfile chokes when hostfile missing';
 }
 
 1;
