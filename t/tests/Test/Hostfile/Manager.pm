@@ -23,24 +23,28 @@ sub path_prefix: Tests(3) {
 	my $test = shift;
 	my $manager = $test->class->new;
 
-	can_ok $manager, 'path_prefix';
-	ok !defined $manager->path_prefix, '... and path_prefix should start out undefined';
+	my $default_prefix = '/etc/hostfiles/';
+	my $new_prefix = '/etc/hostfiles/2/';
 
-	my $prefix = '/etc/hostfiles/';
-	$manager->path_prefix($prefix);
-	is $manager->path_prefix, $prefix, '... and setting its value should succeed';
+	can_ok $manager, 'path_prefix';
+	is $default_prefix, $manager->path_prefix, '... and path_prefix should start out with default value';
+
+	$manager->path_prefix($new_prefix);
+	is $manager->path_prefix, $new_prefix, '... and setting its value should succeed';
 }
 
 sub hostfile_path: Tests(3) {
 	my $test = shift;
 	my $manager = $test->class->new;
 
-	can_ok $manager, 'hostfile_path';
-	ok !defined $manager->hostfile_path, '... and hostfile_path should start out undefined';
+	my $default_hostfile_path = '/etc/hosts';
+	my $new_hostfile_path = '/etc/hosts2';
 
-	my $hostfile_path = '/etc/hosts';
-	$manager->hostfile_path($hostfile_path);
-	is $manager->hostfile_path, $hostfile_path, '... and setting its value should succeed';
+	can_ok $manager, 'hostfile_path';
+	is $default_hostfile_path, $manager->hostfile_path, '... and hostfile_path should start out with default value';
+
+	$manager->hostfile_path($new_hostfile_path);
+	is $manager->hostfile_path, $new_hostfile_path, '... and setting its value should succeed';
 }
 
 sub hostfile: Tests(4) {

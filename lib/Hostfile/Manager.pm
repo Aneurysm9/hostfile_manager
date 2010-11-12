@@ -8,8 +8,8 @@ use File::Find;
 
 our $VERSION = '0.3';
 
-has path_prefix => ( is => 'rw', isa => 'Str' );
-has hostfile_path => ( is => 'rw', isa => 'Str' );
+has path_prefix => ( is => 'rw', isa => 'Str', default => '/etc/hostfiles/' );
+has hostfile_path => ( is => 'rw', isa => 'Str', default => '/etc/hosts' );
 has hostfile => (is => 'ro', isa => 'Str', writer => '_set_hostfile' );
 
 sub load_hostfile {
