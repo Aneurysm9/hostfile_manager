@@ -59,7 +59,19 @@ sub hostfile: Tests(4) {
 	is $content, $manager->hostfile, '... and hostfile should start out with content of file at hostfile_path';
 	throws_ok { $manager->hostfile('foobar') } qr/^Cannot assign a value/, '... and settings its value should NOT succeed';
 	is $content, $manager->hostfile, '... and settings its value did not succeed';
+}
 
+sub hostfile_is_lazy: Tests(2) {
+	my $test = shift;
+
+	my $file = 't/fixtures/hosts/1';
+	my $content = read_file($file);
+
+	my $manager = $test->class->new(hostfile_path => 'non_existent');
+	$manager->hostfile_path($file);
+
+	can_ok $manager, 'hostfile';
+	is $content, $manager->hostfile, '... and hostfile should start out with content of file at hostfile_path, even when constructed with a different hostfile_path';
 }
 
 sub hostfile_cannot_be_set_in_constructor: Tests(1) {
@@ -106,14 +118,6 @@ sub load_hostfile_requires_hostfile_existence: Tests(2) {
 
 	can_ok $manager, 'load_hostfile';
 	throws_ok { $manager->load_hostfile($file) } qr/^Hostfile must exist/, '... and load_hostfile chokes when hostfile missing';
-}
-
-sub cannot_create_object_with_invalid_path_in_constructor: Tests(1) {
-	my $test = shift;
-
-	my $file = 't/fixtures/hosts/non_existent';
-
-	throws_ok { $test->class->new(hostfile_path => $file) } qr/^Hostfile must exist/;
 }
 
 sub get_fragment: Tests(2) {
