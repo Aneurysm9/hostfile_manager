@@ -4,3 +4,7 @@ MANIFEST.SKIP
 README
 bin/hostfiles
 lib/Hostfile/Manager.pm
+t/fixtures/fragments/f1
+t/fixtures/hosts/1
+t/run.t
+t/tests/Test/Hostfile/Manager.pm
