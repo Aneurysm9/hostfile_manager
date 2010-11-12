@@ -5,6 +5,7 @@ use warnings;
 use Moose;
 use File::Slurp;
 use File::Find;
+use File::Basename qw/dirname/;
 
 our $VERSION = '0.3';
 
@@ -24,6 +25,19 @@ sub load_hostfile {
 	}
 
 	$self->_set_hostfile(read_file($filename));
+}
+
+sub write_hostfile {
+	my $self = shift;
+
+	my $filename = $self->hostfile_path;
+
+	unless ((!-e $filename && -w dirname($filename))|| -w $filename)
+	{
+		Carp::croak("Unable to write hostfile to $filename");
+	}
+
+	write_file($filename, $self->hostfile);
 }
 
 sub get_fragment {

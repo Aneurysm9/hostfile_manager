@@ -157,4 +157,47 @@ sub block: Tests(2) {
 	is $block_regexp, $manager->block($fragment_name);
 }
 
+sub write_hostfile: Tests(3) {
+	my $test = shift;
+	my $manager = $test->class->new;
+
+	my $file = 't/fixtures/hosts/1';
+	my $content = read_file($file);
+
+	$manager->load_hostfile($file);
+
+	can_ok $manager, 'write_hostfile';
+
+	my $file2 = 't/fixtures/hosts/write_test';
+	unlink($file2);
+
+	$manager->hostfile_path($file2);
+	ok $manager->write_hostfile, '... and write_hostfile returns ok';
+	is $content, read_file($file2), "... and hostfile written to $file2";
+
+	unlink($file2);
+}
+
+sub write_hostfile_requires_writable: Tests(3) {
+	my $test = shift;
+	my $manager = $test->class->new;
+
+	my $file = 't/fixtures/hosts/1';
+	my $content = read_file($file);
+
+	$manager->load_hostfile($file);
+
+	can_ok $manager, 'write_hostfile';
+
+	my $file2 = 't/fixtures/hosts/write_test';
+	write_file($file2, '');
+	chmod 0444, $file2;
+
+	$manager->hostfile_path($file2);
+	throws_ok { $manager->write_hostfile} qr/^Unable to write hostfile/, '... and write_hostfile chokes when trying to write to file without permissions';
+	is '', read_file($file2), "... and hostfile written to $file2";
+
+	unlink($file2);
+}
+
 1;
