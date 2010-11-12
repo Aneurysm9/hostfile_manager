@@ -211,4 +211,31 @@ sub fragment_enabled: Tests(3) {
 	ok $manager->fragment_enabled('f1'), '... and fragment_enabled returns ok when fragment is indeed enabled';
 	not ok $manager->fragment_enabled('f2'), '... and fragment_enabled returns not_ok when fragment is not enabled';
 }
+
+sub enable_fragment: Tests(4) {
+	my $test = shift;
+
+	my $path = 't/fixtures/hosts/1';
+	my $prefix = 't/fixtures/fragments/';
+	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
+
+	can_ok $manager, 'enable_fragment';
+	not ok $manager->fragment_enabled('f1'), '... and fragment_enabled returns not_ok when fragment is not enabled';
+	ok $manager->enable_fragment('f1'), '... and enable_fragment returns ok when fragment is newly enabled';
+	ok $manager->fragment_enabled('f1'), '... and fragment is indeed enabled';
+}
+
+sub disable_fragment: Tests(4) {
+	my $test = shift;
+
+	my $path = 't/fixtures/hosts/2';
+	my $prefix = 't/fixtures/fragments/';
+	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
+
+	can_ok $manager, 'disable_fragment';
+	ok $manager->fragment_enabled('f1'), '... and fragment_enabled returns ok when fragment is indeed enabled';
+	ok $manager->disable_fragment('f1'), '... and disable_fragment returns ok when fragment is newly disabled';
+	not ok $manager->fragment_enabled('f1'), '... and fragment is indeed disabled';
+}
+
 1;

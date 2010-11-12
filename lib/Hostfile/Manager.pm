@@ -59,6 +59,23 @@ sub fragment_enabled {
 	$self->hostfile =~ @{[$self->block($fragment_name)]};
 }
 
+sub enable_fragment {
+	my ($self, $fragment_name) = @_;
+
+	my $fragment = $self->get_fragment($fragment_name);
+
+	$self->_set_hostfile($self->hostfile . "# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n\n");
+}
+
+sub disable_fragment {
+	my ($self, $fragment_name) = @_;
+
+	my $hostfile = $self->hostfile;
+	$hostfile =~ s/@{[$self->block($fragment_name)]}//;
+
+	$self->_set_hostfile($hostfile);
+}
+
 sub block {
 	my ($self, $block_name) = @_;
 
