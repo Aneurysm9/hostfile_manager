@@ -53,6 +53,12 @@ sub get_fragment {
 	read_file($filename);
 }
 
+sub fragment_enabled {
+	my ($self, $fragment_name) = @_;
+
+	$self->hostfile =~ @{[$self->block($fragment_name)]};
+}
+
 sub block {
 	my ($self, $block_name) = @_;
 

@@ -200,4 +200,15 @@ sub write_hostfile_requires_writable: Tests(3) {
 	unlink($file2);
 }
 
+sub fragment_enabled: Tests(3) {
+	my $test = shift;
+
+	my $path = 't/fixtures/hosts/2';
+	my $prefix = 't/fixtures/fragments/';
+	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
+
+	can_ok $manager, 'fragment_enabled';
+	ok $manager->fragment_enabled('f1'), '... and fragment_enabled returns ok when fragment is indeed enabled';
+	not ok $manager->fragment_enabled('f2'), '... and fragment_enabled returns not_ok when fragment is not enabled';
+}
 1;
