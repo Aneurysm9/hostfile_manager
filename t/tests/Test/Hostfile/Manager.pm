@@ -143,7 +143,7 @@ sub get_fragment_requires_fragment_existence: Tests(2) {
 	my $manager = $test->class->new(path_prefix => $prefix, hostfile_path => $hostfile);
 
 	can_ok $manager, 'get_fragment';
-	throws_ok { $manager->get_fragment($fragment) } qr/^Fragment not found/, '... and get_fragment chokes when fragment file missing';
+	warnings_like { $manager->get_fragment($fragment) } [{carped => qr/^Fragment not found/}], '... and get_fragment chokes when fragment file missing';
 }
 
 sub block: Tests(2) {

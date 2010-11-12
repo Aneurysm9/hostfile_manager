@@ -47,7 +47,8 @@ sub get_fragment {
 
 	unless (-e $filename)
 	{
-		Carp::croak("Fragment not found at $filename");
+		Carp::carp("Fragment not found at $filename");
+		return;
 	}
 
 	read_file($filename);
