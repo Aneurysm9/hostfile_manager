@@ -1,5 +1,7 @@
 package Test::Hostfile::Manager;
 
+use strict;
+use warnings;
 use Test::Most;
 use Test::NoWarnings qw/had_no_warnings/;
 use File::Slurp;
