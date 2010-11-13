@@ -311,4 +311,25 @@ sub fragment_list : Tests(2) {
       '... and fragment list matches expectation';
 }
 
+sub toggle_fragment : Tests(6) {
+    my $test = shift;
+
+    my $path   = 't/fixtures/hosts/2';
+    my $prefix = 't/fixtures/fragments/';
+    my $manager =
+      $test->class->new( hostfile_path => $path, path_prefix => $prefix );
+
+    can_ok $manager, 'toggle_fragment';
+    ok $manager->fragment_enabled('f1'),
+      '... and fragment_enabled returns ok when fragment is enabled';
+    ok $manager->toggle_fragment('f1'),
+      '... and toggle_fragment returns ok when fragment is newly toggled';
+    ok !$manager->fragment_enabled('f1'),
+      '... and fragment is disabled';
+    ok $manager->toggle_fragment('f1'),
+      '... and toggle_fragment returns ok when fragment is newly toggled';
+    ok $manager->fragment_enabled('f1'),
+      '... and fragment is enabled';
+}
+
 1;

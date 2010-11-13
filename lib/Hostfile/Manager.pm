@@ -101,6 +101,17 @@ sub disable_fragment {
     $self->_set_hostfile($hostfile);
 }
 
+sub toggle_fragment {
+    my ( $self, $fragment_name ) = @_;
+
+    if ( $self->fragment_enabled($fragment_name) ) {
+        $self->disable_fragment($fragment_name);
+    }
+    else {
+        $self->enable_fragment($fragment_name);
+    }
+}
+
 sub block {
     my ( $self, $block_name ) = @_;
 
