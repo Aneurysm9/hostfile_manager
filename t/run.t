@@ -6,4 +6,4 @@ use warnings;
 use lib 't/tests';
 use Test::Class::Load qw<t/tests>;
 
-Test::Class->runtests;
+INIT { Test::Class->runtests( Test::Class->_test_classes, +1 ) }
