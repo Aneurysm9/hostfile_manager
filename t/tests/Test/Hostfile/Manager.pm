@@ -264,4 +264,15 @@ sub disable_fragment: Tests(4) {
 	not ok $manager->fragment_enabled('f1'), '... and fragment is indeed disabled';
 }
 
+sub fragment_list: Tests(no_plan) {
+	my $test = shift;
+
+	my $prefix = 't/fixtures/fragments/';
+	my @fragments = ('f1');
+	my $manager = $test->class->new(path_prefix => $prefix);
+
+	can_ok $manager, 'fragment_list';
+	is @{$manager->fragment_list}, @fragments, '... and fragment list matches expectation';
+}
+
 1;

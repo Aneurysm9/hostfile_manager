@@ -3,6 +3,7 @@ package Hostfile::Manager;
 use strict;
 use warnings;
 use Moose;
+use File::Find;
 use File::Slurp;
 use File::Basename qw/dirname/;
 
@@ -11,6 +12,7 @@ our $VERSION = '0.3';
 has path_prefix => ( is => 'rw', isa => 'Str', default => '/etc/hostfiles/' );
 has hostfile_path => ( is => 'rw', isa => 'Str', default => '/etc/hosts' );
 has hostfile => ( is => 'ro', isa => 'Str', writer => '_set_hostfile', lazy => 1, builder => 'load_hostfile', init_arg => undef );
+has fragment_list => ( is => 'ro', isa => 'ArrayRef', lazy => 1, builder => '_load_fragments', init_arg => undef );
 has blocks => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
 sub load_hostfile {
@@ -83,6 +85,16 @@ sub block {
 
 	$self->blocks->{$block_name} ||= qr/(?:#+[\r\n])?#+\s*BEGIN: $block_name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $block_name[\r\n](?:#+[\r\n])?/ms;
 	return $self->blocks->{$block_name};
+}
+
+sub _load_fragments {
+	my $self = shift;
+	my $fragments = [];
+	my $prefix = $self->path_prefix;
+
+	find({ wanted => sub { return if -d $_; push(@$fragments, $_ =~ s{^$prefix}{}) }, no_chdir => 1}, $prefix);
+
+	$fragments;
 }
 
 no Moose;
