@@ -6,45 +6,43 @@ use Getopt::Long;
 use Pod::Usage;
 use Hostfile::Manager;
 
-my @enabled = ();
+my @enabled  = ();
 my @disabled = ();
-my $status = 0;
-my $help = 0;
-my $man = 0;
+my $status   = 0;
+my $help     = 0;
+my $man      = 0;
 
 GetOptions(
-	"enable=s" => \@enabled,
-	"disable=s" => \@disabled,
-	"status" => \$status,
-	"help|?" => \$help,
-	man => \$man,
+    "enable=s"  => \@enabled,
+    "disable=s" => \@disabled,
+    "status"    => \$status,
+    "help|?"    => \$help,
+    man         => \$man,
 ) or pod2usage(2);
 
 pod2usage(1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 
-@enabled = split(/,/, join(',', @enabled));
-@disabled = split(/,/, join(',', @disabled));
+@enabled  = split( /,/, join( ',', @enabled ) );
+@disabled = split( /,/, join( ',', @disabled ) );
 
-pod2usage(1) unless (@enabled || @disabled || $status);
+pod2usage(1) unless ( @enabled || @disabled || $status );
 
 my $manager = Hostfile::Manager->new;
 
 map { print "Disabling $_\n"; $manager->disable_fragment($_) } @disabled;
-map { print "Enabling $_\n"; $manager->enable_fragment($_) } @enabled;
+map { print "Enabling $_\n";  $manager->enable_fragment($_) } @enabled;
 
-$manager->write_hostfile if (@disabled || @enabled);
+$manager->write_hostfile if ( @disabled || @enabled );
 
-if ($status)
-{
-	foreach my $fragment ($manager->fragment_list)
-	{
-		my $fragment_contents = $manager->get_fragment($fragment);
+if ($status) {
+    foreach my $fragment ( $manager->fragment_list ) {
+        my $fragment_contents = $manager->get_fragment($fragment);
 
-		my $found = $manager->hostfile =~ /@{[$manager->block($fragment)]}/g;
-		my $flag = $found ? ($1 eq $fragment_contents ? "+" : "*") : " ";
-		print "$flag $fragment\n";
-	}
+        my $found = $manager->hostfile =~ /@{[$manager->block($fragment)]}/g;
+        my $flag = $found ? ( $1 eq $fragment_contents ? "+" : "*" ) : " ";
+        print "$flag $fragment\n";
+    }
 }
 
 __END__
