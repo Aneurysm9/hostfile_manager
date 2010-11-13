@@ -78,7 +78,7 @@ sub write_hostfile {
 sub fragment_enabled {
     my ( $self, $fragment_name ) = @_;
 
-    $self->hostfile =~ @{ [ $self->block($fragment_name) ] };
+    $self->hostfile =~ $self->block($fragment_name);
 }
 
 sub enable_fragment {

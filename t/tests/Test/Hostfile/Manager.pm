@@ -236,7 +236,7 @@ sub fragment_enabled : Tests(3) {
     can_ok $manager, 'fragment_enabled';
     ok $manager->fragment_enabled('f1'),
       '... and fragment_enabled returns ok when fragment is indeed enabled';
-    not ok $manager->fragment_enabled('f2'),
+    ok !$manager->fragment_enabled('f2'),
       '... and fragment_enabled returns not_ok when fragment is not enabled';
 }
 
@@ -295,11 +295,11 @@ sub disable_fragment : Tests(4) {
       '... and fragment_enabled returns ok when fragment is indeed enabled';
     ok $manager->disable_fragment('f1'),
       '... and disable_fragment returns ok when fragment is newly disabled';
-    not ok $manager->fragment_enabled('f1'),
+    ok !$manager->fragment_enabled('f1'),
       '... and fragment is indeed disabled';
 }
 
-sub fragment_list : Tests(no_plan) {
+sub fragment_list : Tests(2) {
     my $test = shift;
 
     my $prefix    = 't/fixtures/fragments/';
