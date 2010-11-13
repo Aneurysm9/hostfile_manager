@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
-use File::Find;
 use Hostfile::Manager;
 
 my @enabled = ();
@@ -36,21 +35,16 @@ map { print "Enabling $_\n"; $manager->enable_fragment($_) } @enabled;
 
 $manager->write_hostfile if (@disabled || @enabled);
 
-find(\&status_helper, $manager->path_prefix) if $status;
-
-sub status_helper
+if ($status)
 {
-	my $fragment = $File::Find::name;
-	return if -d $fragment;
+	foreach my $fragment (@{$manager->fragment_list})
+	{
+		my $fragment_contents = $manager->get_fragment($fragment);
 
-	my $path_prefix = $manager->path_prefix;
-	$fragment =~ s{^$path_prefix}{};
-
-	my $fragment_contents = $manager->get_fragment($fragment);
-
-	my $found = $manager->hostfile =~ /@{[$manager->block($fragment)]}/g;
-	my $flag = $found ? ($1 eq $fragment_contents ? "+" : "*") : " ";
-	print "$flag $fragment\n";
+		my $found = $manager->hostfile =~ /@{[$manager->block($fragment)]}/g;
+		my $flag = $found ? ($1 eq $fragment_contents ? "+" : "*") : " ";
+		print "$flag $fragment\n";
+	}
 }
 
 __END__

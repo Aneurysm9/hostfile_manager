@@ -92,7 +92,7 @@ sub _load_fragments {
 	my $fragments = [];
 	my $prefix = $self->path_prefix;
 
-	find({ wanted => sub { return if -d $_; push(@$fragments, $_ =~ s{^$prefix}{}) }, no_chdir => 1}, $prefix);
+	find({ wanted => sub { return if -d $_; $_ =~ s{^$prefix}{}; push(@$fragments, $_) }, no_chdir => 1}, $prefix);
 
 	$fragments;
 }
