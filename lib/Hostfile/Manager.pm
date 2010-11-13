@@ -7,13 +7,22 @@ use File::Find;
 use File::Slurp;
 use File::Basename qw/dirname/;
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 has path_prefix => ( is => 'rw', isa => 'Str', default => '/etc/hostfiles/' );
 has hostfile_path => ( is => 'rw', isa => 'Str', default => '/etc/hosts' );
 has hostfile => ( is => 'ro', isa => 'Str', writer => '_set_hostfile', lazy => 1, builder => 'load_hostfile', init_arg => undef );
-has fragment_list => ( is => 'ro', isa => 'ArrayRef', lazy => 1, builder => '_load_fragments', init_arg => undef );
 has blocks => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
+has fragments => (
+	is => 'ro',
+	isa => 'HashRef[Str]',
+	traits => ['Hash'],
+	lazy => 1,
+	builder => '_load_fragments',
+	handles => {
+		fragment_list => 'keys',
+	}
+);
 
 sub load_hostfile {
 	my ($self, $filename) = @_;
@@ -89,10 +98,17 @@ sub block {
 
 sub _load_fragments {
 	my $self = shift;
-	my $fragments = [];
+	my $fragments = {};
 	my $prefix = $self->path_prefix;
 
-	find({ wanted => sub { return if -d $_; $_ =~ s{^$prefix}{}; push(@$fragments, $_) }, no_chdir => 1}, $prefix);
+	find({
+		wanted => sub {
+			return if -d $_;
+			$_ =~ s{^$prefix}{};
+			$fragments->{$_} = $self->get_fragment($_);
+		},
+		no_chdir => 1
+	}, $prefix);
 
 	$fragments;
 }

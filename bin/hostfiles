@@ -37,7 +37,7 @@ $manager->write_hostfile if (@disabled || @enabled);
 
 if ($status)
 {
-	foreach my $fragment (@{$manager->fragment_list})
+	foreach my $fragment ($manager->fragment_list)
 	{
 		my $fragment_contents = $manager->get_fragment($fragment);
 

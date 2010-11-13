@@ -272,7 +272,7 @@ sub fragment_list: Tests(no_plan) {
 	my $manager = $test->class->new(path_prefix => $prefix);
 
 	can_ok $manager, 'fragment_list';
-	is @{$manager->fragment_list}, @fragments, '... and fragment list matches expectation';
+	is $manager->fragment_list, @fragments, '... and fragment list matches expectation';
 }
 
 1;
