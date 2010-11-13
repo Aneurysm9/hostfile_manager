@@ -21,6 +21,7 @@ has fragments => (
 	builder => '_load_fragments',
 	handles => {
 		fragment_list => 'keys',
+		get_fragment => 'get',
 	}
 );
 
@@ -49,20 +50,6 @@ sub write_hostfile {
 	}
 
 	write_file($filename, $self->hostfile);
-}
-
-sub get_fragment {
-	my ($self, $fragment_name) = @_;
-
-	my $filename = $self->path_prefix . $fragment_name;
-
-	unless (-e $filename)
-	{
-		Carp::carp("Fragment not found at $filename");
-		return;
-	}
-
-	read_file($filename);
 }
 
 sub fragment_enabled {
@@ -105,12 +92,26 @@ sub _load_fragments {
 		wanted => sub {
 			return if -d $_;
 			$_ =~ s{^$prefix}{};
-			$fragments->{$_} = $self->get_fragment($_);
+			$fragments->{$_} = $self->_load_fragment($_);
 		},
 		no_chdir => 1
 	}, $prefix);
 
 	$fragments;
+}
+
+sub _load_fragment {
+	my ($self, $fragment_name) = @_;
+
+	my $filename = $self->path_prefix . $fragment_name;
+
+	unless (-e $filename)
+	{
+		Carp::carp("Fragment not found at $filename");
+		return;
+	}
+
+	read_file($filename);
 }
 
 no Moose;

@@ -1,6 +1,7 @@
 package Test::Hostfile::Manager;
 
 use Test::Most;
+use Test::NoWarnings qw/had_no_warnings/;
 use File::Slurp;
 use base 'Test::Class';
 
@@ -133,7 +134,7 @@ sub get_fragment: Tests(2) {
 	is read_file($prefix . $fragment), $manager->get_fragment($fragment), '... and get_fragment returns fragment content';
 }
 
-sub get_fragment_requires_fragment_existence: Tests(2) {
+sub get_fragment_returns_undef_when_fragment_missing: Tests(2) {
 	my $test = shift;
 
 	my $hostfile = 't/fixtures/hosts/1';
@@ -143,7 +144,7 @@ sub get_fragment_requires_fragment_existence: Tests(2) {
 	my $manager = $test->class->new(path_prefix => $prefix, hostfile_path => $hostfile);
 
 	can_ok $manager, 'get_fragment';
-	warnings_like { $manager->get_fragment($fragment) } [{carped => qr/^Fragment not found/}], '... and get_fragment chokes when fragment file missing';
+	is undef, $manager->get_fragment($fragment), '... and get_fragment undef when fragment file missing';
 }
 
 sub block: Tests(2) {
@@ -212,7 +213,7 @@ sub fragment_enabled: Tests(3) {
 	not ok $manager->fragment_enabled('f2'), '... and fragment_enabled returns not_ok when fragment is not enabled';
 }
 
-sub enable_fragment: Tests(4) {
+sub enable_fragment: Tests(3) {
 	my $test = shift;
 
 	my $path = 't/fixtures/hosts/1';
@@ -220,7 +221,6 @@ sub enable_fragment: Tests(4) {
 	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
 
 	can_ok $manager, 'enable_fragment';
-	not ok $manager->fragment_enabled('f1'), '... and fragment_enabled returns not_ok when fragment is not enabled';
 	ok $manager->enable_fragment('f1'), '... and enable_fragment returns ok when fragment is newly enabled';
 	ok $manager->fragment_enabled('f1'), '... and fragment is indeed enabled';
 }
@@ -239,16 +239,14 @@ sub enable_fragment_does_not_leave_multiple_entries: Tests(4) {
 	is $manager->hostfile, $content, '... and fragment only appears once';
 }
 
-sub enable_fragment_does_not_warn_if_fragment_not_loaded: Tests(2) {
+sub enable_fragment_does_not_warn_if_fragment_not_loaded: Tests(1) {
 	my $test = shift;
 
 	my $path = 't/fixtures/hosts/2';
-	my $content = read_file($path);
 	my $prefix = 't/fixtures/fragments/';
 	my $manager = $test->class->new(hostfile_path => $path, path_prefix => $prefix);
 
-	can_ok $manager, 'enable_fragment';
-	warning_like { $manager->enable_fragment('non_existent') } [qr/^Fragment not found/], '... and enable_fragment does not complain excessively when enabling missing fragment';
+	had_no_warnings $manager->enable_fragment('non_existent'), '... and enable_fragment does not complain excessively when enabling missing fragment';
 }
 
 sub disable_fragment: Tests(4) {

@@ -13,6 +13,7 @@ WriteMakefile(
 		'Pod::Usage' => 0,
 		'Test::Class' => 0,
 		'Test::Most' => 0,
+		'Test::NoWarnings' => 0,
 	},
 	AUTHOR => 'Anthony J. Mirabella',
 );
