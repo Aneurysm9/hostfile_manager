@@ -2,88 +2,156 @@ package Hostfile::Manager;
 
 use strict;
 use warnings;
-use File::Slurp;
+use Moose;
 use File::Find;
+use File::Slurp;
+use File::Basename qw/dirname/;
 
-BEGIN {
-	use Exporter ();
-	our ($VERSION, @ISA, @EXPORT, @EXPORT_OK);
+our $VERSION = '0.4';
 
-	$VERSION = '0.2';
-	@ISA = qw(Exporter);
-	@EXPORT = qw(disable_fragments enable_fragments read_hostfile show_status write_hostfile);
+has path_prefix => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => '/etc/hostfiles/',
+);
+
+has hostfile_path => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => '/etc/hosts',
+);
+
+has hostfile => (
+    is       => 'ro',
+    isa      => 'Str',
+    writer   => '_set_hostfile',
+    lazy     => 1,
+    builder  => 'load_hostfile',
+    init_arg => undef,
+);
+
+has blocks => (
+    is       => 'ro',
+    isa      => 'HashRef',
+    default  => sub { {} },
+    init_arg => undef,
+);
+
+has fragments => (
+    is      => 'ro',
+    isa     => 'HashRef[Str]',
+    traits  => ['Hash'],
+    lazy    => 1,
+    builder => '_load_fragments',
+    handles => {
+        fragment_list => 'keys',
+        get_fragment  => 'get',
+    },
+    init_arg => undef,
+);
+
+sub load_hostfile {
+    my ( $self, $filename ) = @_;
+
+    $filename = $self->hostfile_path unless defined $filename;
+
+    unless ( -e $filename ) {
+        Carp::croak("Hostfile must exist.  File not found at $filename");
+    }
+
+    my $file = read_file($filename);
+    $self->_set_hostfile($file);
 }
 
-my %re;
-my $path_prefix = '/etc/hostfiles/';
-my $hostfile_path = '/etc/hosts';
-my $hostfile;
+sub write_hostfile {
+    my $self = shift;
 
-sub block
-{
-	my $name = shift;
-	$re{$name} ||= qr/(?:#+[\r\n])?#+\s*BEGIN: $name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $name[\r\n](?:#+[\r\n])?/ms;
-	return $re{$name};
+    my $filename = $self->hostfile_path;
+
+    unless ( ( !-e $filename && -w dirname($filename) ) || -w $filename ) {
+        Carp::croak("Unable to write hostfile to $filename");
+    }
+
+    write_file( $filename, $self->hostfile );
 }
 
-sub enable_fragments
-{
-	my @enabled = @_;
-	foreach my $enable (@enabled)
-	{
-		my $filename = $path_prefix . $enable;
-		unless (-e $filename)
-		{
-			print "Hostfile fragment $enable does not exist\n";
-			next;
-		}
+sub fragment_enabled {
+    my ( $self, $fragment_name ) = @_;
 
-		print "Enabling $enable\n";
-		$hostfile =~ s/@{[block($enable)]}//g;
-
-		my $addition = read_file($filename);
-		$hostfile .= "# BEGIN: $enable\n$addition# END: $enable\n\n";
-	}
+    $self->hostfile =~ $self->block($fragment_name);
 }
 
-sub disable_fragments
-{
-	my @disabled = @_;
-	foreach my $disable (@disabled)
-	{
-		print "Disabling $disable\n";
-		$hostfile =~ s/@{[block($disable)]}//g;
-	}
+sub enable_fragment {
+    my ( $self, $fragment_name ) = @_;
+
+    my $fragment = $self->get_fragment($fragment_name) or return;
+
+    $self->disable_fragment($fragment_name)
+      if $self->fragment_enabled($fragment_name);
+    $self->_set_hostfile( $self->hostfile
+          . "# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n" );
 }
 
-sub read_hostfile
-{
-	die("You must have permission to read $hostfile_path\n") unless (-r $hostfile_path);
-	$hostfile = read_file($hostfile_path);
+sub disable_fragment {
+    my ( $self, $fragment_name ) = @_;
+
+    my $hostfile = $self->hostfile;
+    $hostfile =~ s/@{[$self->block($fragment_name)]}//g;
+
+    $self->_set_hostfile($hostfile);
 }
 
-sub show_status
-{
-	find(\&status_helper, $path_prefix);
+sub toggle_fragment {
+    my ( $self, $fragment_name ) = @_;
+
+    if ( $self->fragment_enabled($fragment_name) ) {
+        $self->disable_fragment($fragment_name);
+    }
+    else {
+        $self->enable_fragment($fragment_name);
+    }
 }
 
-sub status_helper
-{
-	my $fragment = $File::Find::name;
-	return if -d $fragment;
+sub block {
+    my ( $self, $block_name ) = @_;
 
-	my $fragment_contents = read_file($fragment);
-	$fragment =~ s{^$path_prefix}{};
-
-	my $found = $hostfile =~ /@{[block($fragment)]}/;
-	my $flag = $found ? ($1 eq $fragment_contents ? "+" : "*") : " ";
-	print "$flag $fragment\n";
+    $self->blocks->{$block_name} ||=
+qr/(?:#+[\r\n])?#+\s*BEGIN: $block_name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $block_name[\r\n](?:#+[\r\n])?/ms;
+    return $self->blocks->{$block_name};
 }
 
-sub write_hostfile
-{
-	die("You must have permission to write $hostfile_path\n") unless (-w $hostfile_path);
-	write_file($hostfile_path, $hostfile);
+sub _load_fragments {
+    my $self      = shift;
+    my $fragments = {};
+    my $prefix    = $self->path_prefix;
+
+    find(
+        {
+            wanted => sub {
+                return if -d $_;
+                $_ =~ s{^$prefix}{};
+                $fragments->{$_} = $self->_load_fragment($_);
+            },
+            no_chdir => 1
+        },
+        $prefix
+    );
+
+    $fragments;
 }
 
-1;
+sub _load_fragment {
+    my ( $self, $fragment_name ) = @_;
+
+    my $filename = $self->path_prefix . $fragment_name;
+
+    unless ( -e $filename ) {
+        Carp::carp("Fragment not found at $filename");
+        return;
+    }
+
+    read_file($filename);
+}
+
+no Moose;
+__PACKAGE__->meta->make_immutable;

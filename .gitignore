@@ -1,0 +1,5 @@
+*.swp
+pm_to_blib
+Makefile
+Makefile.old
+blib/

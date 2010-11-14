@@ -5,38 +5,69 @@ use warnings;
 use Getopt::Long;
 use Pod::Usage;
 use Hostfile::Manager;
+use Term::Clui;
 
-my @enabled = ();
-my @disabled = ();
-my $status = 0;
-my $help = 0;
-my $man = 0;
+my @enabled     = ();
+my @disabled    = ();
+my $interactive = 0;
+my $status      = 0;
+my $help        = 0;
+my $man         = 0;
 
 GetOptions(
-	"enable=s" => \@enabled,
-	"disable=s" => \@disabled,
-	"status" => \$status,
-	"help|?" => \$help,
-	man => \$man,
+    "enable=s"    => \@enabled,
+    "disable=s"   => \@disabled,
+    "interactive" => \$interactive,
+    "status"      => \$status,
+    "help|?"      => \$help,
+    man           => \$man,
 ) or pod2usage(2);
 
 pod2usage(1) if $help;
-pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+pod2usage( -exitstatus => 0, -verbose => 2 ) if $man;
 
-@enabled = split(/,/, join(',', @enabled));
-@disabled = split(/,/, join(',', @disabled));
+@enabled  = split( /,/, join( ',', @enabled ) );
+@disabled = split( /,/, join( ',', @disabled ) );
 
-pod2usage(1) unless (@enabled || @disabled || $status);
+pod2usage(1) unless ( @enabled || @disabled || $status || $interactive );
 
-read_hostfile();
+my $manager = Hostfile::Manager->new;
 
-disable_fragments(@disabled) if @disabled;
-enable_fragments(@enabled) if @enabled;
+if ($interactive) {
+    my $modified = 0;
 
-write_hostfile() if (@disabled || @enabled);
+    while (
+        my $chosen = choose(
+            "Select a hostfile fragment:",
+            map { get_fragment_status_line($_) } $manager->fragment_list
+        )
+      )
+    {
+        $chosen =~ s/^..//;
+        $manager->toggle_fragment($chosen);
+        $modified = 1;
+    }
 
-show_status() if $status;
+    $manager->write_hostfile if $modified;
+}
+else {
+    map { print "Disabling $_\n"; $manager->disable_fragment($_) } @disabled;
+    map { print "Enabling $_\n";  $manager->enable_fragment($_) } @enabled;
 
+    $manager->write_hostfile if ( @disabled || @enabled );
+
+    map { print get_fragment_status_line($_) . "\n" } $manager->fragment_list
+      if $status;
+}
+
+sub get_fragment_status_line {
+    my $fragment          = shift;
+    my $fragment_contents = $manager->get_fragment($fragment);
+
+    my $found = $manager->hostfile =~ /@{[$manager->block($fragment)]}/g;
+    my $flag = $found ? ( $1 eq $fragment_contents ? "+" : "*" ) : " ";
+    return "$flag $fragment";
+}
 
 __END__
 
@@ -49,9 +80,10 @@ hostfiles - A simple script to manage multiple sets of hostfiles on *NIX systems
 hostfiles [options]
 
   Options:
-    --enable	Enable one or more hostfile fragments
-    --disable	Disable one or more hostfile fragments
-    --status	Display the status of various hostfile fragments
+    --enable        Enable one or more hostfile fragments
+    --disable       Disable one or more hostfile fragments
+    --status        Display the status of various hostfile fragments
+    --interactive   Present an interactive list of hostfile fragments
 
 =head1 OPTIONS
 
@@ -68,6 +100,10 @@ Disable one or more hostfile fragments.  This option may be specified multiple t
 =item B<--status>
 
 Display a list of fragments and their status.  A '+' indicates the fragment is enabled.  A '*' indicates an enabled fragment has been changed in /etc/hosts.
+
+=item B<--interactive>
+
+Presents an interactive list of hostfile fragment to enable or disable.
 
 =back
 
