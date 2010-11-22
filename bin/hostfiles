@@ -61,12 +61,9 @@ else {
 }
 
 sub get_fragment_status_line {
-    my $fragment          = shift;
-    my $fragment_contents = $manager->get_fragment($fragment);
-
-    my $found = $manager->hostfile =~ /@{[$manager->block($fragment)]}/g;
-    my $flag = $found ? ( $1 eq $fragment_contents ? "+" : "*" ) : " ";
-    return "$flag $fragment";
+    my $fragment_name     = shift;
+    my $flag = $manager->fragment_status_flag($fragment_name);
+    return "$flag $fragment_name";
 }
 
 __END__

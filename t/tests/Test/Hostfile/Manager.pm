@@ -303,7 +303,7 @@ sub fragment_list : Tests(2) {
     my $test = shift;
 
     my $prefix    = 't/fixtures/fragments/';
-    my @fragments = ('f1');
+    my @fragments = ('f1', 'f1a');
     my $manager   = $test->class->new( path_prefix => $prefix );
 
     can_ok $manager, 'fragment_list';
@@ -330,6 +330,23 @@ sub toggle_fragment : Tests(6) {
       '... and toggle_fragment returns ok when fragment is newly toggled';
     ok $manager->fragment_enabled('f1'),
       '... and fragment is enabled';
+}
+
+sub fragment_status_flag : Tests(4) {
+    my $test = shift;
+
+    my $path = 't/fixtures/hosts/3';
+    my $prefix = 't/fixtures/fragments/';
+    my $manager =
+      $test->class->new( hostfile_path => $path, path_prefix => $prefix );
+
+    can_ok $manager, 'fragment_status_flag';
+    is $manager->fragment_status_flag('f1'), '+',
+      '... and fragment_status_flag returns \'+\' when fragment is enabled and unmodified';
+    is $manager->fragment_status_flag('f1a'), '*',
+      '... and fragment_status_flag returns \'*\' when fragment is enabled and modified';
+    is $manager->fragment_status_flag('f2'), ' ',
+      '... and fragment_status_flag returns \' \' when fragment is disabled';
 }
 
 1;

@@ -153,5 +153,13 @@ sub _load_fragment {
     read_file($filename);
 }
 
+sub fragment_status_flag {
+    my ( $self, $fragment_name ) = @_;
+    my $fragment_contents = $self->get_fragment($fragment_name);
+
+    my $found = $self->hostfile =~ /@{[$self->block($fragment_name)]}/g;
+    return $found ? ( $1 eq $fragment_contents ? "+" : "*" ) : " ";
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
