@@ -175,10 +175,10 @@ sub block : Tests(2) {
 
     my $fragment_name = 'f1';
     my $block_regexp =
-qr/(?:#+[\r\n])?#+\s*BEGIN: $fragment_name[\r\n](?:#+[\r\n])?(.*)(?:#+[\r\n])?#+\s*END: $fragment_name[\r\n](?:#+[\r\n])?/ms;
+qr/#+\s*BEGIN: $fragment_name[\r\n](.*)#+\s*END: $fragment_name[\r\n]/ms;
 
     can_ok $manager,  'block';
-    is $block_regexp, $manager->block($fragment_name);
+    is $manager->block($fragment_name), $block_regexp;
 }
 
 sub write_hostfile : Tests(3) {

@@ -116,7 +116,7 @@ sub block {
     my ( $self, $block_name ) = @_;
 
     $self->blocks->{$block_name} ||=
-qr/(?:#+[\r\n])?#+\s*BEGIN: $block_name[\r\n](.*)#+\s*END: $block_name[\r\n]/ms;
+qr/#+\s*BEGIN: $block_name[\r\n](.*)#+\s*END: $block_name[\r\n]/ms;
     return $self->blocks->{$block_name};
 }
 
