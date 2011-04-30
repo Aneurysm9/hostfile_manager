@@ -9,17 +9,51 @@ use File::Basename qw/dirname/;
 
 our $VERSION = '0.4';
 
+=head1 NAME
+
+Hostfile::Manager - Manage a hostfile by composing multiple fragments into a whole.
+
+=head1 SYNOPSIS
+
+	use Hostfile::Manager;
+
+	$manager = Hostfile::Manager->new;
+	$manager->enable_fragment($fragment_name);
+	$manager->write_hostfile;
+
+=head1 ACCESSORS
+
+=over 6
+
+=item B<< Str path_prefix( [Str $prefix] ) >>
+
+Defines the prefix that will be searched for hostfile fragments.  Defaults to '/etc/hostfiles/'.
+
+=cut
+
 has path_prefix => (
     is      => 'rw',
     isa     => 'Str',
     default => '/etc/hostfiles/',
 );
 
+=item B<< Str hostfile_path( [Str $path] ) >>
+
+Defines the path to the hostfile to manage.  Defaults to '/etc/hosts'.
+
+=cut
+
 has hostfile_path => (
     is      => 'rw',
     isa     => 'Str',
     default => '/etc/hosts',
 );
+
+=item B<< Str hostfile >>
+
+The contents of the hostfile under management.
+
+=cut
 
 has hostfile => (
     is       => 'ro',
@@ -37,6 +71,22 @@ has blocks => (
     init_arg => undef,
 );
 
+=item B<< HashRef fragments >>
+
+The available hostfile fragments.
+
+=item B<< Array fragment_list >>
+
+A list of the names of available fragments.
+
+=item B<< Str get_fragment( Str $fragment_name ) >>
+
+The contents of an individual hostfile fragment.
+
+=back
+
+=cut
+
 has fragments => (
     is      => 'ro',
     isa     => 'HashRef[Str]',
@@ -49,6 +99,16 @@ has fragments => (
     },
     init_arg => undef,
 );
+
+=head1 METHODS
+
+=over 6
+
+=item B<< Hostfile::Manager->new( [\%options] ) >>
+
+Create a new manager instance.  Available options are B<path_prefix> and B<hostfile_path>, listed in the L<ACCESSORS|/"ACCESSORS"> section.
+
+=cut
 
 sub load_hostfile {
     my ( $self, $filename ) = @_;
@@ -63,6 +123,12 @@ sub load_hostfile {
     $self->_set_hostfile($file);
 }
 
+=item B<< Bool write_hostfile >>
+
+Write the contents of the hostfile to disk.
+
+=cut
+
 sub write_hostfile {
     my $self = shift;
 
@@ -75,11 +141,23 @@ sub write_hostfile {
     write_file( $filename, $self->hostfile );
 }
 
+=item B<< Bool fragment_enabled( Str $fragment_name ) >>
+
+Test whether a named fragment is enabled in the hostfile under management.
+
+=cut
+
 sub fragment_enabled {
     my ( $self, $fragment_name ) = @_;
 
     $self->hostfile =~ $self->block($fragment_name);
 }
+
+=item B<< enable_fragment( Str $fragment_name ) >>
+
+Enable a named fragment.  If the fragment is currently enabled, it will be disabled first, removing any modifications that may have been made out-of-band.
+
+=cut
 
 sub enable_fragment {
     my ( $self, $fragment_name ) = @_;
@@ -92,6 +170,12 @@ sub enable_fragment {
           . "# BEGIN: $fragment_name\n$fragment# END: $fragment_name\n" );
 }
 
+=item B<< disable_fragment( Str $fragment_name ) >>
+
+Disable a named fragment.
+
+=cut
+
 sub disable_fragment {
     my ( $self, $fragment_name ) = @_;
 
@@ -100,6 +184,12 @@ sub disable_fragment {
 
     $self->_set_hostfile($hostfile);
 }
+
+=item B<< toggle_fragment( Str $fragment_name ) >>
+
+Enable a fragment if it is disabled, disable it otherwise.
+
+=cut
 
 sub toggle_fragment {
     my ( $self, $fragment_name ) = @_;
@@ -153,6 +243,30 @@ sub _load_fragment {
     read_file($filename);
 }
 
+=item B<< Str fragment_status_flag( Str $fragment_name ) >>
+
+Returns a string indicating the current status of a named fragment.
+
+=over 2
+
+=item B<"+">
+
+The named fragment is enabled.
+
+=item B<"*">
+
+The named fragment is enabled and has been modified in the sourced hostfile.
+
+=item B<" ">
+
+The named fragment is not enabled.
+
+=back
+
+=back
+
+=cut
+
 sub fragment_status_flag {
     my ( $self, $fragment_name ) = @_;
     my $fragment_contents = $self->get_fragment($fragment_name);
@@ -163,3 +277,13 @@ sub fragment_status_flag {
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
+
+__END__
+
+=head1 LICENSE
+
+Same as Perl
+
+=head1 AUTHOR
+
+Anthony J. Mirabella <mirabeaj AT gmail DOT com>
