@@ -29,6 +29,7 @@ my %conf = (
 	META_MERGE => {
 		resources => {
 			repository => 'git://github.com/Aneurysm9/hostfile_manager.git',
+			homepage => 'https://github.com/Aneurysm9/hostfile_manager';
 		},
 	},
 );
