@@ -18,4 +18,6 @@ WriteMakefile(
 		'Test::NoWarnings' => 0,
 	},
 	AUTHOR => 'Anthony J. Mirabella',
+	ABSTRACT => 'Manage a hostfile by composing multiple fragments into a whole.',
+	LICENSE => 'perl',
 );
