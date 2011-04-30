@@ -213,16 +213,19 @@ sub write_hostfile_requires_writable : Tests(3) {
 
     can_ok $manager, 'write_hostfile';
 
-    my $file2 = 't/fixtures/hosts/write_test';
-    write_file( $file2, '' );
-    chmod 0444, $file2;
+    SKIP: {
+        skip 'Cannot test writable requirements as root', 2 if ($< == 0);
+        my $file2 = 't/fixtures/hosts/write_test';
+        write_file( $file2, '' );
+        chmod 0444, $file2;
 
-    $manager->hostfile_path($file2);
-    throws_ok { $manager->write_hostfile } qr/^Unable to write hostfile/,
-'... and write_hostfile chokes when trying to write to file without permissions';
-    is '', read_file($file2), "... and hostfile written to $file2";
+        $manager->hostfile_path($file2);
+        throws_ok { $manager->write_hostfile } qr/^Unable to write hostfile/,
+            '... and write_hostfile chokes when trying to write to file without permissions';
+        is '', read_file($file2), "... and hostfile NOT written to $file2";
 
-    unlink($file2);
+        unlink($file2);
+    }
 }
 
 sub fragment_enabled : Tests(3) {

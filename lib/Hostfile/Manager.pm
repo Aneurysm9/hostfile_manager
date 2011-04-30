@@ -7,7 +7,7 @@ use File::Find;
 use File::Slurp;
 use File::Basename qw/dirname/;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 NAME
 
