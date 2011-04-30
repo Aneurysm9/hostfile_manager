@@ -282,7 +282,9 @@ __END__
 
 =head1 LICENSE
 
-Same as Perl
+Copyright (c) 2010-11 Anthony J. Mirabella. All rights reserved.
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
 
 =head1 AUTHOR
 
