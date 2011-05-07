@@ -7,7 +7,7 @@ use File::Find;
 use File::Slurp;
 use File::Basename qw/dirname/;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 NAME
 
@@ -271,8 +271,8 @@ sub fragment_status_flag {
     my ( $self, $fragment_name ) = @_;
     my $fragment_contents = $self->get_fragment($fragment_name);
 
-    my $found = $self->hostfile =~ /@{[$self->block($fragment_name)]}/g;
-    return $found ? ( $1 eq $fragment_contents ? "+" : "*" ) : " ";
+    my ($found) = $self->hostfile =~ /@{[$self->block($fragment_name)]}/g;
+    return $found ? ( $found eq $fragment_contents ? "+" : "*" ) : " ";
 }
 
 no Moose;
