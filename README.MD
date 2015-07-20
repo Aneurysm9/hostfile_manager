@@ -1,22 +1,27 @@
+[![Build Status](https://travis-ci.org/Aneurysm9/hostfile_manager.svg?branch=master)](https://travis-ci.org/Aneurysm9/hostfile_manager)
+
 This is a simple Perl script for managing multiple hostfile configurations on *NIX systems.  The `hostfiles` script is built on top of the Hostfile::Manager module.  The module provides an object-oriented interface to managing a list of hostfile fragments and enabling or disabling them in a target hostfile.
 
 To get started, create a directory /etc/hostfiles and place one or more files in the directory containing hostfile fragments.  The fragment filename will be used to tell the hostfile manager what to enable or disable.
 
-Using the `hostfiles` is simple.  It has two primary options: --enable and --disable.  You can specify each multiple times or pass comma-separated lists of fragment filenames.
+Using the `hostfiles` is simple.  It has two primary options: `--enable` and `--disable`.  You can specify each multiple times or pass comma-separated lists of fragment filenames.
 
 For example, to enable a hostfile fragment called "staging":
 
-$ hostfiles --enable staging
+    $ hostfiles --enable staging
 
 You can ask for the status of the available hostfile fragments by passing the --status flag:
 
-$ hostfiles --status
-+ local
-$
+    $ hostfiles --status
+    + local
+    $
 
 The first character of the status ouput will be ' ' if the fragment is not enabled, '+' if it is enabled, and '*' if it is enabled and has been modified in /etc/hosts.
 
 Passing the --interactive flag will ignore any --enable, --disable, or --status options and present a list of hostfile fragments that can be enabled or disabled interactively.
+
+License
+----
 
 Copyright (c) 2010-11 Anthony J. Mirabella. All rights reserved.
 This program is free software; you can redistribute it and/or
