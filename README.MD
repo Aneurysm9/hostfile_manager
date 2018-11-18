@@ -23,6 +23,6 @@ Passing the --interactive flag will ignore any --enable, --disable, or --status 
 License
 ----
 
-Copyright (c) 2010-11 Anthony J. Mirabella. All rights reserved.
+Copyright (c) 2010-11,2018 Anthony J. Mirabella. All rights reserved.
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
