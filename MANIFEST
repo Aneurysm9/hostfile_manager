@@ -1,7 +1,10 @@
+CHANGES.MD
+CODE_OF_CONDUCT.md
+LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-README
+README.MD
 bin/hostfiles
 lib/Hostfile/Manager.pm
 t/fixtures/fragments/f1
